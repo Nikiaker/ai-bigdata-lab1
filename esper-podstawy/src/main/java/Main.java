@@ -17,9 +17,9 @@ public class Main {
         EPRuntime epRuntime = EPRuntimeProvider.getDefaultRuntime(configuration);
 
         EPDeployment deployment = compileAndDeploy(epRuntime,"""
-                                select istream data, spolka, kursOtwarcia - prev(kursOtwarcia)
-                                from KursAkcji(spolka='Oracle')#length(2)
-                                having kursOtwarcia > prev(kursOtwarcia);""");
+                SELECT ISTREAM k.spolka, k.data, k.kursZamkniecia - r.kursZamkniecia AS roznica
+                FROM KursAkcji#ext_timed_batch(data.getTime(), 1 day) k, KursAkcji#ext_timed_batch(data.getTime(), 1 day) r
+                WHERE k.spolka IN ('PepsiCo', 'CocaCola') AND r.spolka = k.spolka;""");
         ProstyListener prostyListener = new ProstyListener();
         for (EPStatement statement : deployment.getStatements()) {
             statement.addListener(prostyListener);
